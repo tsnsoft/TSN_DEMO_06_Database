@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/AndroidStudioProjects-TSN_DEMO_06_Database.iml" filepath="$PROJECT_DIR$/AndroidStudioProjects-TSN_DEMO_06_Database.iml" group="TSN_DEMO_06_Database" />
+      <module fileurl="file://$PROJECT_DIR$/TSN_DEMO_06_Database/TSN_DEMO_06_Database-TSN_DEMO_06_Database.iml" filepath="$PROJECT_DIR$/TSN_DEMO_06_Database/TSN_DEMO_06_Database-TSN_DEMO_06_Database.iml" group="TSN_DEMO_06_Database/TSN_DEMO_06_Database" />
+    </modules>
+  </component>
+</project>
