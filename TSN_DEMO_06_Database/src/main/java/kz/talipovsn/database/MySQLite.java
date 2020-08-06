@@ -103,7 +103,8 @@ public class MySQLite extends SQLiteOpenHelper {
         if (filter.equals("")) {
             selectQuery = "SELECT  * FROM " + TABLE_NAME + " ORDER BY " + NAME;
         } else {
-            selectQuery = "SELECT  * FROM " + TABLE_NAME + " WHERE (" + NAME_LC + " LIKE '%" + filter.toLowerCase() + "%'" +
+            selectQuery = "SELECT  * FROM " + TABLE_NAME + " WHERE (" + NAME_LC + " LIKE '%" +
+                    filter.toLowerCase() + "%'" +
                     " OR " + PHONE_NUMBER + " LIKE '%" + filter + "%'" + ") ORDER BY " + NAME;
         }
         SQLiteDatabase db = this.getReadableDatabase(); // Доступ к БД
