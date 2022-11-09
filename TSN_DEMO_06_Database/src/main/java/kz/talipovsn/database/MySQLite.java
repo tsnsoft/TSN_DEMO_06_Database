@@ -42,6 +42,7 @@ public class MySQLite extends SQLiteOpenHelper {
                 + NAME_LC + " TEXT,"
                 + PHONE_NUMBER + " TEXT" + ")";
         db.execSQL(CREATE_CONTACTS_TABLE);
+        System.out.println(CREATE_CONTACTS_TABLE);
         loadDataFromAsset(context, ASSETS_FILE_NAME,  db);
     }
 
@@ -49,6 +50,7 @@ public class MySQLite extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+        System.out.println("DROP TABLE IF EXISTS " + TABLE_NAME);
         onCreate(db);
     }
 
@@ -115,8 +117,10 @@ public class MySQLite extends SQLiteOpenHelper {
         int num = 0;
         if (cursor.moveToFirst()) { // Если есть хоть одна запись, то
             do { // Цикл по всем записям результата запроса
-                String name = cursor.getString(1); // Чтение названия организации
-                String phoneNumber = cursor.getString(3); // Чтение телефонного номера
+                int n = cursor.getColumnIndex(NAME);
+                int t = cursor.getColumnIndex(PHONE_NUMBER);
+                String name = cursor.getString(n); // Чтение названия организации
+                String phoneNumber = cursor.getString(t); // Чтение телефонного номера
                 data.append(String.valueOf(++num) + ") " + name + ": " + phoneNumber + "\n");
             } while (cursor.moveToNext()); // Цикл пока есть следующая запись
         }
