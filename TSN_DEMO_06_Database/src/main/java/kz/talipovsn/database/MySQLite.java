@@ -13,7 +13,7 @@ import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 
 public class MySQLite extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 2; // НОМЕР ВЕРСИИ БАЗЫ ДАННЫХ И ТАБЛИЦ !
+    private static final int DATABASE_VERSION = 7; // НОМЕР ВЕРСИИ БАЗЫ ДАННЫХ И ТАБЛИЦ !
 
     static final String DATABASE_NAME = "phones"; // Имя базы данных
 
