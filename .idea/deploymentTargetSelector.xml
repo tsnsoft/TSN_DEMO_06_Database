@@ -4,6 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="TSN_DEMO_06_Database">
         <option name="selectionMode" value="DROPDOWN" />
+        <DialogSelection />
       </SelectionState>
     </selectionStates>
   </component>
