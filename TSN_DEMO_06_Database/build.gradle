@@ -6,8 +6,8 @@ android {
         applicationId "kz.talipovsn.database"
         minSdkVersion 24
         targetSdkVersion 37
-        versionCode 5
-        versionName "2026"
+        versionCode 6
+        versionName "2026.1"
     }
     buildTypes {
         release {

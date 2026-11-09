@@ -7,124 +7,89 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.StringTokenizer;
 
 public class MySQLite extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 12; // НОМЕР ВЕРСИИ БАЗЫ ДАННЫХ И ТАБЛИЦ !
 
-    static final String DATABASE_NAME = "phones"; // Имя базы данных
+    private Context context;
 
-    static final String TABLE_NAME = "emergency_service"; // Имя таблицы
-    static final String ID = "id"; // Поле с ID
-    static final String NAME = "name"; // Поле с наименованием организации
-    static final String NAME_LC = "name_lc"; // // Поле с наименованием организации в нижнем регистре
-    static final String PHONE_NUMBER = "phone_number"; // Поле с телефонным номером
-
-    static final String ASSETS_FILE_NAME = "telephone.txt"; // Имя файла из ресурсов с данными для БД
-    static final String DATA_SEPARATOR = "|"; // Разделитель данных в файле ресурсов с телефонами
-
-    private Context context; // Контекст приложения
-
+    // Конструктор класса
     public MySQLite(Context context) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        // Увеличили версию до 14, чтобы таблица пересоздалась
+        super(context, "phones", null, 14);
         this.context = context;
     }
 
-    // Метод создания базы данных и таблиц в ней
+    // Создание таблицы
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String CREATE_CONTACTS_TABLE = "CREATE TABLE " + TABLE_NAME + "("
-                + ID + " INTEGER PRIMARY KEY,"
-                + NAME + " TEXT,"
-                + NAME_LC + " TEXT,"
-                + PHONE_NUMBER + " TEXT" + ")";
-        db.execSQL(CREATE_CONTACTS_TABLE);
-        System.out.println(CREATE_CONTACTS_TABLE);
-        loadDataFromAsset(context, ASSETS_FILE_NAME,  db);
+        // Создание таблицы emergency_service с тремя колонками: id, name, phone_number
+        db.execSQL("CREATE TABLE emergency_service (" +
+                "id INTEGER PRIMARY KEY, " +
+                "name TEXT, " +
+                "phone_number TEXT)");
+
+        loadDataFromAsset(db); // Чтение данных из файла assets/telephone.txt и формирование базы данных
     }
 
-    // Метод при обновлении структуры базы данных и/или таблиц в ней
+    // Пересоздание таблицы при смене версии БД или при удалении таблицы
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
-        System.out.println("DROP TABLE IF EXISTS " + TABLE_NAME);
-        onCreate(db);
+        db.execSQL("DROP TABLE IF EXISTS emergency_service"); // Удаление таблицы, если она существует
+        onCreate(db); // Вызов метода onCreate() для пересоздания таблицы
     }
 
-    // Добавление нового контакта в БД
-    public void addData(SQLiteDatabase db, String name, String phoneNumber) {
-        ContentValues values = new ContentValues();
-        values.put(NAME, name);
-        values.put(NAME_LC, name.toLowerCase());
-        values.put(PHONE_NUMBER, phoneNumber);
-        db.insert(TABLE_NAME, null, values);
+    // Добавление одной записи в таблицу через метод insert() класса SQLiteDatabase
+    public void addData(SQLiteDatabase db, String name, String phone) {
+        ContentValues values = new ContentValues(); // Создание объекта ContentValues для хранения данных
+        values.put("name", name); // Добавление имени в объект ContentValues
+        values.put("phone_number", phone); // Добавление номера телефона в объект ContentValues
+        db.insert("emergency_service", null, values); // Вставка данных в таблицу emergency_service
     }
 
-    // Добавление записей в базу данных из файла ресурсов
-    public void loadDataFromAsset(Context context, String fileName, SQLiteDatabase db) {
-        BufferedReader in = null;
+    // Чтение данных из файла assets/telephone.txt и формирование базы данных
+    public void loadDataFromAsset(SQLiteDatabase db) {
+        try (InputStream is = context.getAssets().open("telephone.txt");
+             BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
 
-        try {
-            // Открываем поток для работы с файлом с исходными данными
-            InputStream is = context.getAssets().open(fileName);
-            // Открываем буфер обмена для потока работы с файлом с исходными данными
-            in = new BufferedReader(new InputStreamReader(is));
-
-            String str;
-            while ((str = in.readLine()) != null) { // Читаем строку из файла
-                String strTrim = str.trim(); // Убираем у строки пробелы с концов
-                if (!strTrim.equals("")) { // Если строка не пустая, то
-                    StringTokenizer st = new StringTokenizer(strTrim, DATA_SEPARATOR); // Нарезаем ее на части
-                    String name = st.nextToken().trim(); // Извлекаем из строки название организации без пробелов на концах
-                    String phoneNumber = st.nextToken().trim(); // Извлекаем из строки номер организации без пробелов на концах
-                    addData(db, name, phoneNumber); // Добавляем название и телефон в базу данных
+            String line; // Чтение каждой строки из файла
+            while ((line = reader.readLine()) != null) { // Чтение строки из файла
+                if (!line.trim().isEmpty()) { // Проверка на пустую строку
+                    String[] parts = line.split("\\|"); // Разделение строки на части по символу "|"
+                    String name = parts[0].trim(); // Убираем пробелы в начале и конце имени
+                    String phone = parts[1].trim(); // Убираем пробелы в начале и конце номера телефона
+                    addData(db, name, phone); // Добавление данных в базу данных
                 }
             }
-
-        // Обработчики ошибок
-        } catch (IOException ignored) {
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException ignored) {
-                }
-            }
+        } catch (Exception ignored) {
         }
-
     }
 
-    // Получение значений данных из БД в виде строки с фильтром
+    // Получение данных из базы данных с учетом фильтра
     public String getData(String filter) {
+        SQLiteDatabase db = this.getReadableDatabase(); // Получаем базу данных для чтения
 
-        String selectQuery; // Переменная для SQL-запроса
+        // Делаем один простой запрос к базе данных, чтобы получить все записи, отсортированные по имени
+        Cursor cursor = db.rawQuery("SELECT * FROM emergency_service ORDER BY name", null);
 
-        if (filter.equals("")) {
-            selectQuery = "SELECT  * FROM " + TABLE_NAME + " ORDER BY " + NAME;
-        } else {
-            selectQuery = "SELECT  * FROM " + TABLE_NAME + " WHERE (" + NAME_LC + " LIKE '%" +
-                    filter.toLowerCase() + "%'" +
-                    " OR " + PHONE_NUMBER + " LIKE '%" + filter + "%'" + ") ORDER BY " + NAME;
-        }
-        SQLiteDatabase db = this.getReadableDatabase(); // Доступ к БД
-        Cursor cursor = db.rawQuery(selectQuery, null); // Выполнение SQL-запроса
-
-        StringBuilder data = new StringBuilder(); // Переменная для формирования данных из запроса
-
+        StringBuilder result = new StringBuilder();
+        String filterLc = filter.toLowerCase(); // Переводим фильтр в нижний регистр один раз
         int num = 0;
-        if (cursor.moveToFirst()) { // Если есть хоть одна запись, то
-            do { // Цикл по всем записям результата запроса
-                int n = cursor.getColumnIndex(NAME);
-                int t = cursor.getColumnIndex(PHONE_NUMBER);
-                String name = cursor.getString(n); // Чтение названия организации
-                String phoneNumber = cursor.getString(t); // Чтение телефонного номера
-                data.append(String.valueOf(++num) + ") " + name + ": " + phoneNumber + "\n");
-            } while (cursor.moveToNext()); // Цикл пока есть следующая запись
-        }
-        return data.toString(); // Возвращение результата
-    }
 
+        // Проходим по всем записям в курсоре
+        while (cursor.moveToNext()) {
+            String name = cursor.getString(1);  // 1 — колонка "name"
+            String phone = cursor.getString(2); // 2 — колонка "phone_number"
+
+            // Проверяем совпадение с фильтром (по имени или по номеру телефона)
+            if (name.toLowerCase().contains(filterLc) || phone.contains(filter)) {
+                num++;
+                result.append(num).append(") ").append(name).append(": ").append(phone).append("\n");
+            }
+        }
+
+        cursor.close(); // Закрываем курсор после использования
+        return result.toString(); // Возвращаем результат в виде строки
+    }
 }
